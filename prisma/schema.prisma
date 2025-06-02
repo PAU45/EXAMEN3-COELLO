@@ -1,0 +1,87 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model OrdenVenta {
+  NroOrdenVta     Int               @id @default(autoincrement())
+  fechaEmision    DateTime
+  MotivoEspec     String
+  Situacion       String
+  detalleOrdenVla DetalleOrdenVla[]
+}
+
+model DetalleOrdenVla {
+  id                Int         @id @default(autoincrement())
+  NroOrdenVta       Int
+  cantidadMed       Int
+  cantidadRequerida Int
+  CodMedicamento    Int
+  ordenVenta        OrdenVenta  @relation(fields: [NroOrdenVta], references: [NroOrdenVta])
+  medicamento       Medicamento @relation(fields: [CodMedicamento], references: [CodMedicamento])
+}
+
+model Medicamento {
+  CodMedicamento     Int                  @id @default(autoincrement())
+  descripcionMed     String
+  fechaVencimiento   DateTime
+  Presentacion       String
+  stock              Int
+  precioVentaUni     Float
+  precioVentaPres    Float
+  marca              String
+  CodTipoMed         Int
+  CodEspec           Int
+  tipoMed            TipoMed              @relation(fields: [CodTipoMed], references: [CodTipoMed])
+  especialidad       Especialidad         @relation(fields: [CodEspec], references: [CodEspec])
+  detalleOrdenVla    DetalleOrdenVla[] // Relación inversa
+  detalleOrdenCompra DetalleOrdenCompra[] // Relación inversa
+}
+
+model TipoMed {
+  CodTipoMed   Int           @id @default(autoincrement())
+  descripcion  String
+  medicamentos Medicamento[]
+}
+
+model Especialidad {
+  CodEspec       Int           @id @default(autoincrement())
+  descripcionEsp String
+  medicamentos   Medicamento[]
+}
+
+model OrdenCompra {
+  NroOrdenCompra     Int                  @id @default(autoincrement())
+  fechaEmision       DateTime
+  Situacion          String
+  NroFacturaProv     String
+  CodLab             Int
+  detalleOrdenCompra DetalleOrdenCompra[]
+  laboratorio        Laboratorio          @relation(fields: [CodLab], references: [CodLab])
+}
+
+model DetalleOrdenCompra {
+  id             Int         @id @default(autoincrement())
+  NroOrdenCompra Int
+  descripcion    String
+  cantidad       Int
+  precio         Float
+  montoun        Float
+  CodMedicamento Int
+  medicamento    Medicamento @relation(fields: [CodMedicamento], references: [CodMedicamento])
+  ordenCompra    OrdenCompra @relation(fields: [NroOrdenCompra], references: [NroOrdenCompra])
+}
+
+model Laboratorio {
+  CodLab        Int           @id @default(autoincrement())
+  razonSocial   String
+  email         String
+  contacto      String
+  direccion     String
+  telefono      String
+  ordenesCompra OrdenCompra[]
+}
