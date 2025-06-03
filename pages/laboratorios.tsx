@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import Navbar from '../src/components/Navbar';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -7,7 +7,24 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const initialForm = {
+interface Laboratorio {
+  CodLab: number;
+  razonSocial: string;
+  email: string;
+  contacto: string;
+  direccion: string;
+  telefono: string;
+}
+
+interface FormData {
+  razonSocial: string;
+  email: string;
+  contacto: string;
+  direccion: string;
+  telefono: string;
+}
+
+const initialForm: FormData = {
   razonSocial: '',
   email: '',
   contacto: '',
@@ -16,10 +33,10 @@ const initialForm = {
 };
 
 const Laboratorios = () => {
-  const [laboratorios, setLaboratorios] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [laboratorios, setLaboratorios] = useState<Laboratorio[]>([]);
+  const [form, setForm] = useState<FormData>(initialForm);
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchLaboratorios();
@@ -31,11 +48,11 @@ const Laboratorios = () => {
     setLaboratorios(data);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleOpen = (lab = null) => {
+  const handleOpen = (lab: Laboratorio | null = null) => {
     if (lab) {
       setForm({
         razonSocial: lab.razonSocial,
@@ -58,7 +75,7 @@ const Laboratorios = () => {
     setEditId(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (
       !form.razonSocial ||
@@ -87,7 +104,7 @@ const Laboratorios = () => {
     fetchLaboratorios();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (!window.confirm('¿Seguro que deseas eliminar este laboratorio?')) return;
     await fetch(`/api/laboratorios/${id}`, { method: 'DELETE' });
     fetchLaboratorios();

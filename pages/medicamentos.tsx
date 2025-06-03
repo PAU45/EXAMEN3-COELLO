@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import Navbar from '../src/components/Navbar';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -7,7 +7,32 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const initialForm = {
+interface Medicamento {
+  CodMedicamento: number;
+  descripcionMed: string;
+  fechaVencimiento: string;
+  Presentacion: string;
+  stock: number;
+  precioVentaUni: number;
+  precioVentaPres: number;
+  marca: string;
+  CodTipoMed: number;
+  CodEspec: number;
+}
+
+interface FormData {
+  descripcionMed: string;
+  fechaVencimiento: string;
+  Presentacion: string;
+  stock: string;          // keep as string for controlled input, convert later
+  precioVentaUni: string; // same as above
+  precioVentaPres: string;
+  marca: string;
+  CodTipoMed: string;
+  CodEspec: string;
+}
+
+const initialForm: FormData = {
   descripcionMed: '',
   fechaVencimiento: '',
   Presentacion: '',
@@ -20,10 +45,10 @@ const initialForm = {
 };
 
 const Medicamentos = () => {
-  const [medicamentos, setMedicamentos] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [medicamentos, setMedicamentos] = useState<Medicamento[]>([]);
+  const [form, setForm] = useState<FormData>(initialForm);
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchMedicamentos();
@@ -35,22 +60,22 @@ const Medicamentos = () => {
     setMedicamentos(data);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleOpen = (med = null) => {
+  const handleOpen = (med: Medicamento | null = null) => {
     if (med) {
       setForm({
         descripcionMed: med.descripcionMed,
         fechaVencimiento: med.fechaVencimiento?.substring(0, 10) || '',
         Presentacion: med.Presentacion,
-        stock: med.stock,
-        precioVentaUni: med.precioVentaUni,
-        precioVentaPres: med.precioVentaPres,
+        stock: med.stock.toString(),
+        precioVentaUni: med.precioVentaUni.toString(),
+        precioVentaPres: med.precioVentaPres.toString(),
         marca: med.marca,
-        CodTipoMed: med.CodTipoMed,
-        CodEspec: med.CodEspec,
+        CodTipoMed: med.CodTipoMed.toString(),
+        CodEspec: med.CodEspec.toString(),
       });
       setEditId(med.CodMedicamento);
     } else {
@@ -66,7 +91,7 @@ const Medicamentos = () => {
     setEditId(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (
       !form.descripcionMed ||
@@ -108,7 +133,7 @@ const Medicamentos = () => {
     fetchMedicamentos();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (!window.confirm('¿Seguro que deseas eliminar este medicamento?')) return;
     await fetch(`/api/medicamentos/${id}`, { method: 'DELETE' });
     fetchMedicamentos();

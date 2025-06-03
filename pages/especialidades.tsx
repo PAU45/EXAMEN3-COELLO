@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import Navbar from '../src/components/Navbar';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -7,13 +7,22 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const initialForm = { descripcionEsp: '' };
+interface Especialidad {
+  CodEspec: number;
+  descripcionEsp: string;
+}
+
+interface FormData {
+  descripcionEsp: string;
+}
+
+const initialForm: FormData = { descripcionEsp: '' };
 
 const Especialidades = () => {
-  const [especialidades, setEspecialidades] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [especialidades, setEspecialidades] = useState<Especialidad[]>([]);
+  const [form, setForm] = useState<FormData>(initialForm);
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchEspecialidades();
@@ -25,11 +34,11 @@ const Especialidades = () => {
     setEspecialidades(data);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleOpen = (especialidad = null) => {
+  const handleOpen = (especialidad: Especialidad | null = null) => {
     if (especialidad) {
       setForm({ descripcionEsp: especialidad.descripcionEsp });
       setEditId(especialidad.CodEspec);
@@ -46,13 +55,13 @@ const Especialidades = () => {
     setEditId(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.descripcionEsp) {
+    if (!form.descripcionEsp.trim()) {
       alert('Completa la descripción');
       return;
     }
-    if (editId) {
+    if (editId !== null) {
       await fetch(`/api/especialidades/${editId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -69,7 +78,7 @@ const Especialidades = () => {
     fetchEspecialidades();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (!window.confirm('¿Seguro que deseas eliminar esta especialidad?')) return;
     await fetch(`/api/especialidades/${id}`, { method: 'DELETE' });
     fetchEspecialidades();
@@ -120,7 +129,7 @@ const Especialidades = () => {
       </Box>
 
       <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{editId ? 'Editar Especialidad' : 'Agregar Especialidad'}</DialogTitle>
+        <DialogTitle>{editId !== null ? 'Editar Especialidad' : 'Agregar Especialidad'}</DialogTitle>
         <form onSubmit={handleSubmit}>
           <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 350 }}>
             <TextField
@@ -134,7 +143,7 @@ const Especialidades = () => {
           <DialogActions>
             <Button onClick={handleClose}>Cancelar</Button>
             <Button type="submit" variant="contained" color="primary">
-              {editId ? 'Guardar Cambios' : 'Agregar'}
+              {editId !== null ? 'Guardar Cambios' : 'Agregar'}
             </Button>
           </DialogActions>
         </form>

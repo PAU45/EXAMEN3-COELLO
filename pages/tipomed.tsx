@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import Navbar from '../src/components/Navbar';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -7,13 +7,22 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const initialForm = { descripcion: '' };
+interface TipoMed {
+  CodTipoMed: number;
+  descripcion: string;
+}
+
+interface FormState {
+  descripcion: string;
+}
+
+const initialForm: FormState = { descripcion: '' };
 
 const TipoMed = () => {
-  const [tipos, setTipos] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [tipos, setTipos] = useState<TipoMed[]>([]);
+  const [form, setForm] = useState<FormState>(initialForm);
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchTipos();
@@ -21,15 +30,15 @@ const TipoMed = () => {
 
   const fetchTipos = async () => {
     const res = await fetch('/api/tipomed');
-    const data = await res.json();
+    const data: TipoMed[] = await res.json();
     setTipos(data);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleOpen = (tipo = null) => {
+  const handleOpen = (tipo: TipoMed | null = null) => {
     if (tipo) {
       setForm({ descripcion: tipo.descripcion });
       setEditId(tipo.CodTipoMed);
@@ -46,7 +55,7 @@ const TipoMed = () => {
     setEditId(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!form.descripcion) {
       alert('Completa la descripción');
@@ -69,7 +78,7 @@ const TipoMed = () => {
     fetchTipos();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (!window.confirm('¿Seguro que deseas eliminar este tipo?')) return;
     await fetch(`/api/tipomed/${id}`, { method: 'DELETE' });
     fetchTipos();

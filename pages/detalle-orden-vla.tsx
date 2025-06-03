@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import Navbar from '../src/components/Navbar';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -7,7 +7,22 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const initialForm = {
+interface Detalle {
+  id: number;
+  NroOrdenVta: number;
+  cantidadMed: number;
+  cantidadRequerida: number;
+  CodMedicamento: number;
+}
+
+interface FormData {
+  NroOrdenVta: string;
+  cantidadMed: string;
+  cantidadRequerida: string;
+  CodMedicamento: string;
+}
+
+const initialForm: FormData = {
   NroOrdenVta: '',
   cantidadMed: '',
   cantidadRequerida: '',
@@ -15,10 +30,10 @@ const initialForm = {
 };
 
 const DetalleOrdenVla = () => {
-  const [detalles, setDetalles] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [detalles, setDetalles] = useState<Detalle[]>([]);
+  const [form, setForm] = useState<FormData>(initialForm);
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchDetalles();
@@ -30,17 +45,17 @@ const DetalleOrdenVla = () => {
     setDetalles(data);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleOpen = (detalle = null) => {
+  const handleOpen = (detalle: Detalle | null = null) => {
     if (detalle) {
       setForm({
-        NroOrdenVta: detalle.NroOrdenVta,
-        cantidadMed: detalle.cantidadMed,
-        cantidadRequerida: detalle.cantidadRequerida,
-        CodMedicamento: detalle.CodMedicamento,
+        NroOrdenVta: detalle.NroOrdenVta.toString(),
+        cantidadMed: detalle.cantidadMed.toString(),
+        cantidadRequerida: detalle.cantidadRequerida.toString(),
+        CodMedicamento: detalle.CodMedicamento.toString(),
       });
       setEditId(detalle.id);
     } else {
@@ -56,7 +71,7 @@ const DetalleOrdenVla = () => {
     setEditId(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     if (
       !form.NroOrdenVta ||
@@ -68,7 +83,6 @@ const DetalleOrdenVla = () => {
       return;
     }
     const payload = {
-      ...form,
       NroOrdenVta: Number(form.NroOrdenVta),
       cantidadMed: Number(form.cantidadMed),
       cantidadRequerida: Number(form.cantidadRequerida),
@@ -92,7 +106,7 @@ const DetalleOrdenVla = () => {
     fetchDetalles();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (!window.confirm('¿Seguro que deseas eliminar este detalle?')) return;
     await fetch(`/api/detalle-orden-vla/${id}`, { method: 'DELETE' });
     fetchDetalles();

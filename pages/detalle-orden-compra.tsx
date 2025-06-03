@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import Navbar from '../src/components/Navbar';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -7,7 +7,26 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const initialForm = {
+interface Detalle {
+  id: number;
+  NroOrdenCompra: number;
+  descripcion: string;
+  cantidad: number;
+  precio: number;
+  montoun: number;
+  CodMedicamento: number;
+}
+
+interface FormData {
+  NroOrdenCompra: string;
+  descripcion: string;
+  cantidad: string;
+  precio: string;
+  montoun: string;
+  CodMedicamento: string;
+}
+
+const initialForm: FormData = {
   NroOrdenCompra: '',
   descripcion: '',
   cantidad: '',
@@ -17,10 +36,10 @@ const initialForm = {
 };
 
 const DetalleOrdenCompra = () => {
-  const [detalles, setDetalles] = useState([]);
-  const [form, setForm] = useState(initialForm);
+  const [detalles, setDetalles] = useState<Detalle[]>([]);
+  const [form, setForm] = useState<FormData>(initialForm);
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchDetalles();
@@ -32,19 +51,19 @@ const DetalleOrdenCompra = () => {
     setDetalles(data);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleOpen = (detalle = null) => {
+  const handleOpen = (detalle: Detalle | null = null) => {
     if (detalle) {
       setForm({
-        NroOrdenCompra: detalle.NroOrdenCompra,
+        NroOrdenCompra: detalle.NroOrdenCompra.toString(),
         descripcion: detalle.descripcion,
-        cantidad: detalle.cantidad,
-        precio: detalle.precio,
-        montoun: detalle.montoun,
-        CodMedicamento: detalle.CodMedicamento,
+        cantidad: detalle.cantidad.toString(),
+        precio: detalle.precio.toString(),
+        montoun: detalle.montoun.toString(),
+        CodMedicamento: detalle.CodMedicamento.toString(),
       });
       setEditId(detalle.id);
     } else {
@@ -60,9 +79,9 @@ const DetalleOrdenCompra = () => {
     setEditId(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Validación básica
+
     if (
       !form.NroOrdenCompra ||
       !form.descripcion ||
@@ -74,6 +93,7 @@ const DetalleOrdenCompra = () => {
       alert('Completa todos los campos');
       return;
     }
+
     const payload = {
       ...form,
       NroOrdenCompra: Number(form.NroOrdenCompra),
@@ -100,7 +120,7 @@ const DetalleOrdenCompra = () => {
     fetchDetalles();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (!window.confirm('¿Seguro que deseas eliminar este detalle?')) return;
     await fetch(`/api/detalle-orden-compra/${id}`, { method: 'DELETE' });
     fetchDetalles();

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent, FormEvent } from 'react';
 import Navbar from '../src/components/Navbar';
 import {
   Box, Button, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -7,42 +7,53 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const initialForm = {
+interface OrdenVenta {
+  NroOrdenVta: number;
+  fechaEmision: string;
+  MotivoEspec: string;
+  Situacion: string;
+}
+
+interface FormState {
+  fechaEmision: string;
+  MotivoEspec: string;
+  Situacion: string;
+}
+
+const initialForm: FormState = {
   fechaEmision: '',
+  MotivoEspec: '',
   Situacion: '',
-  NroFacturaProv: '',
-  CodLab: '',
 };
 
-const OrdenesCompra = () => {
-  const [ordenes, setOrdenes] = useState([]);
-  const [form, setForm] = useState(initialForm);
+const OrdenesVenta = () => {
+  const [ordenes, setOrdenes] = useState<OrdenVenta[]>([]);
+  const [form, setForm] = useState<FormState>(initialForm);
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState(null);
+  const [editId, setEditId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchOrdenes();
   }, []);
 
   const fetchOrdenes = async () => {
-    const res = await fetch('/api/ordenes-compra');
-    const data = await res.json();
+    const res = await fetch('/api/ordenes-venta');
+    const data: OrdenVenta[] = await res.json();
     setOrdenes(data);
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleOpen = (orden = null) => {
+  const handleOpen = (orden: OrdenVenta | null = null) => {
     if (orden) {
       setForm({
         fechaEmision: orden.fechaEmision?.substring(0, 10) || '',
+        MotivoEspec: orden.MotivoEspec,
         Situacion: orden.Situacion,
-        NroFacturaProv: orden.NroFacturaProv,
-        CodLab: orden.CodLab,
       });
-      setEditId(orden.NroOrdenCompra);
+      setEditId(orden.NroOrdenVta);
     } else {
       setForm(initialForm);
       setEditId(null);
@@ -56,29 +67,21 @@ const OrdenesCompra = () => {
     setEditId(null);
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (
-      !form.fechaEmision ||
-      !form.Situacion ||
-      !form.NroFacturaProv ||
-      !form.CodLab
-    ) {
+    if (!form.fechaEmision || !form.MotivoEspec || !form.Situacion) {
       alert('Completa todos los campos');
       return;
     }
-    const payload = {
-      ...form,
-      CodLab: Number(form.CodLab),
-    };
+    const payload = { ...form };
     if (editId) {
-      await fetch(`/api/ordenes-compra/${editId}`, {
+      await fetch(`/api/ordenes-venta/${editId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
     } else {
-      await fetch('/api/ordenes-compra', {
+      await fetch('/api/ordenes-venta', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -88,18 +91,18 @@ const OrdenesCompra = () => {
     fetchOrdenes();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: number) => {
     if (!window.confirm('¿Seguro que deseas eliminar esta orden?')) return;
-    await fetch(`/api/ordenes-compra/${id}`, { method: 'DELETE' });
+    await fetch(`/api/ordenes-venta/${id}`, { method: 'DELETE' });
     fetchOrdenes();
   };
 
   return (
     <Box sx={{ background: '#f7f7f7', minHeight: '100vh', pb: 4 }}>
       <Navbar />
-      <Box sx={{ maxWidth: 900, mx: 'auto', mt: 4 }}>
+      <Box sx={{ maxWidth: 800, mx: 'auto', mt: 4 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <h1 style={{ color: '#1976d2' }}>Órdenes de Compra</h1>
+          <h1 style={{ color: '#1976d2' }}>Órdenes de Venta</h1>
           <Button variant="contained" color="primary" onClick={() => handleOpen()}>
             Agregar Orden
           </Button>
@@ -110,25 +113,23 @@ const OrdenesCompra = () => {
               <TableRow>
                 <TableCell>ID</TableCell>
                 <TableCell>Fecha Emisión</TableCell>
+                <TableCell>Motivo Específico</TableCell>
                 <TableCell>Situación</TableCell>
-                <TableCell>Nro Factura Prov</TableCell>
-                <TableCell>Cod Lab</TableCell>
                 <TableCell align="center">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {ordenes.map((o) => (
-                <TableRow key={o.NroOrdenCompra}>
-                  <TableCell>{o.NroOrdenCompra}</TableCell>
+                <TableRow key={o.NroOrdenVta}>
+                  <TableCell>{o.NroOrdenVta}</TableCell>
                   <TableCell>{o.fechaEmision?.substring(0, 10)}</TableCell>
+                  <TableCell>{o.MotivoEspec}</TableCell>
                   <TableCell>{o.Situacion}</TableCell>
-                  <TableCell>{o.NroFacturaProv}</TableCell>
-                  <TableCell>{o.CodLab}</TableCell>
                   <TableCell align="center">
                     <IconButton color="primary" onClick={() => handleOpen(o)}>
                       <EditIcon />
                     </IconButton>
-                    <IconButton color="error" onClick={() => handleDelete(o.NroOrdenCompra)}>
+                    <IconButton color="error" onClick={() => handleDelete(o.NroOrdenVta)}>
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
@@ -136,7 +137,7 @@ const OrdenesCompra = () => {
               ))}
               {ordenes.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={6} align="center">Sin registros</TableCell>
+                  <TableCell colSpan={5} align="center">Sin registros</TableCell>
                 </TableRow>
               )}
             </TableBody>
@@ -158,24 +159,16 @@ const OrdenesCompra = () => {
               required
             />
             <TextField
+              name="MotivoEspec"
+              label="Motivo Específico"
+              value={form.MotivoEspec}
+              onChange={handleChange}
+              required
+            />
+            <TextField
               name="Situacion"
               label="Situación"
               value={form.Situacion}
-              onChange={handleChange}
-              required
-            />
-            <TextField
-              name="NroFacturaProv"
-              label="Nro Factura Proveedor"
-              value={form.NroFacturaProv}
-              onChange={handleChange}
-              required
-            />
-            <TextField
-              name="CodLab"
-              label="Cod Laboratorio"
-              type="number"
-              value={form.CodLab}
               onChange={handleChange}
               required
             />
@@ -192,4 +185,4 @@ const OrdenesCompra = () => {
   );
 };
 
-export default OrdenesCompra;
+export default OrdenesVenta;
