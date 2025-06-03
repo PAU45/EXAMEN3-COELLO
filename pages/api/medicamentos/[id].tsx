@@ -2,7 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import prisma from '../../../src/lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  const id = parseInt(req.query.id as string);
+  const id = parseInt(req.query.id as string, 10);
 
   if (req.method === 'GET') {
     const medicamento = await prisma.medicamento.findUnique({ where: { CodMedicamento: id } });
@@ -12,14 +12,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'PUT') {
     try {
-      const data = req.body;
+      const data = req.body; // Asegúrate de que 'data' tenga un tipo específico en otro lugar
       const actualizado = await prisma.medicamento.update({
         where: { CodMedicamento: id },
         data,
       });
       return res.status(200).json(actualizado);
-    } catch (error: any) {
-      return res.status(400).json({ error: error.message });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      return res.status(400).json({ error: message });
     }
   }
 
@@ -27,11 +28,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       await prisma.medicamento.delete({ where: { CodMedicamento: id } });
       return res.status(204).end();
-    } catch (error: any) {
-      return res.status(400).json({ error: error.message });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      return res.status(400).json({ error: message });
     }
   }
 
   res.setHeader('Allow', ['GET', 'PUT', 'DELETE']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  return res.status(405).end(`Método ${req.method} no permitido`);
 }

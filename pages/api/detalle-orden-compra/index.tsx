@@ -9,14 +9,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (req.method === 'POST') {
     try {
-      const data = req.body;
+      const data = req.body; // Asegúrate de que 'data' tenga un tipo específico en otro lugar
       const nuevo = await prisma.detalleOrdenCompra.create({ data });
       return res.status(201).json(nuevo);
-    } catch (error: any) {
-      return res.status(400).json({ error: error.message });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      return res.status(400).json({ error: message });
     }
   }
 
   res.setHeader('Allow', ['GET', 'POST']);
-  res.status(405).end(`Method ${req.method} Not Allowed`);
+  res.status(405).end(`Método ${req.method} no permitido`);
 }

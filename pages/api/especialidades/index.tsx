@@ -6,21 +6,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     try {
       const especialidades = await prisma.especialidad.findMany();
       return res.status(200).json(especialidades);
-    } catch (error: any) {
-      return res.status(500).json({ error: error.message });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      return res.status(500).json({ error: message });
     }
   }
 
   if (req.method === 'POST') {
     try {
-      const data = req.body;
+      const data = req.body; // Asegúrate de que 'data' tenga un tipo específico en otro lugar
       const nuevo = await prisma.especialidad.create({ data });
       return res.status(201).json(nuevo);
-    } catch (error: any) {
-      return res.status(400).json({ error: error.message });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      return res.status(400).json({ error: message });
     }
   }
 
   res.setHeader('Allow', ['GET', 'POST']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  return res.status(405).end(`Método ${req.method} no permitido`);
 }

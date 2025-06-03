@@ -3,8 +3,13 @@ import prisma from '../../../src/lib/prisma';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
-    const medicamentos = await prisma.medicamento.findMany();
-    return res.status(200).json(medicamentos);
+    try {
+      const medicamentos = await prisma.medicamento.findMany();
+      return res.status(200).json(medicamentos);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      return res.status(500).json({ error: message });
+    }
   }
 
   if (req.method === 'POST') {
@@ -18,12 +23,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       const nuevo = await prisma.medicamento.create({ data });
       return res.status(201).json(nuevo);
-    } catch (error: any) {
-      console.error(error);
-      return res.status(400).json({ error: error.message });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Error desconocido';
+      return res.status(400).json({ error: message });
     }
   }
 
   res.setHeader('Allow', ['GET', 'POST']);
-  return res.status(405).end(`Method ${req.method} Not Allowed`);
+  return res.status(405).end(`Método ${req.method} no permitido`);
 }
